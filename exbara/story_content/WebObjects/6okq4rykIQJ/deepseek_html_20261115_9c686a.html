@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eksplorasi Volume Tabung - SMP IX</title>
+  <style>
+    /* Reset dan ukuran ketat 768x280 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 6px;
+      background: #0b1424;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+    /* Wadah utama dengan border cyan menyala */
+    .sim-container {
+      width: 100%;
+      height: 100%;
+      border: 2px solid #00e5ff;
+      border-radius: 12px;
+      background: #0d1b2e;
+      padding: 6px;
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+      transition: box-shadow 0.2s;
+    }
+    /* Panel kartu biru slate terang */
+    .panel {
+      background: #132a4a;
+      border: 1px solid #38bdf8;
+      border-radius: 10px;
+      padding: 6px 8px;
+      color: #e0f2fe;
+      box-shadow: inset 0 0 6px rgba(56, 189, 248, 0.2);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    /* Kolom kiri: kontrol slider */
+    .panel-left {
+      flex: 1 1 190px;
+      min-width: 170px;
+      max-width: 210px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    /* Kolom tengah: visual tabung */
+    .panel-center {
+      flex: 2 1 300px;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+    }
+    /* Kolom kanan: data pengamatan */
+    .panel-right {
+      flex: 1 1 190px;
+      min-width: 170px;
+      max-width: 210px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: center;
+    }
+    /* Judul dan teks */
+    h3 {
+      font-size: 11px;
+      font-weight: 600;
+      color: #7dd3fc;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #38bdf8;
+      padding-bottom: 2px;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #bae6fd;
+      font-weight: 500;
+    }
+    .slider-label span:last-child {
+      color: #f0f9ff;
+      font-weight: 700;
+      background: #1e3a5f;
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 14px;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: pointer;
+      margin: 0;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 6px;
+      background: #1e3a5f;
+      border-radius: 6px;
+      border: 1px solid #38bdf8;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #00e5ff;
+      margin-top: -4px;
+      box-shadow: 0 0 6px #00e5ff;
+      border: 1px solid #ffffff;
+    }
+    input[type=range]::-moz-range-track {
+      height: 6px;
+      background: #1e3a5f;
+      border-radius: 6px;
+      border: 1px solid #38bdf8;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #00e5ff;
+      border: 1px solid #fff;
+      box-shadow: 0 0 6px #00e5ff;
+    }
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .btn {
+      flex: 1;
+      background: #1e3a5f;
+      border: 1px solid #38bdf8;
+      color: #e0f2fe;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 600;
+      padding: 3px 0;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 0 4px rgba(56, 189, 248, 0.3);
+      letter-spacing: 0.3px;
+    }
+    .btn:hover {
+      background: #2a4a72;
+      box-shadow: 0 0 8px #00e5ff;
+    }
+    .btn:active {
+      background: #0f2a44;
+      transform: scale(0.97);
+    }
+    .btn-pi {
+      display: flex;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .btn-pi .btn {
+      font-size: 8px;
+      padding: 2px 0;
+    }
+    .btn-pi .btn.active {
+      background: #00b8d4;
+      color: #0b1424;
+      border-color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 0 10px #00e5ff;
+    }
+    /* Canvas */
+    #tubeCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: 300px;
+      max-height: 200px;
+      background: transparent;
+      border-radius: 8px;
+    }
+    /* Data pengamatan */
+    .data-box {
+      background: #0b1d36;
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px dotted #1e4a6e;
+      padding: 1px 0;
+    }
+    .data-row:last-child {
+      border-bottom: none;
+    }
+    .data-label {
+      color: #7dd3fc;
+      font-weight: 500;
+    }
+    .data-value {
+      color: #f0f9ff;
+      font-weight: 700;
+      font-size: 11px;
+      background: #0d2842;
+      padding: 0 6px;
+      border-radius: 4px;
+      min-width: 70px;
+      text-align: right;
+      letter-spacing: 0.2px;
+    }
+    .satuan {
+      font-size: 8px;
+      color: #94a3b8;
+      margin-left: 2px;
+      font-weight: 400;
+    }
+    /* Aturan tambahan untuk memastikan tidak ada scroll */
+    .no-scroll {
+      overflow: hidden;
+    }
+    /* Penyesuaian label kecil */
+    .small-note {
+      font-size: 8px;
+      color: #7dd3fc;
+      text-align: center;
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sim-container" id="simContainer">
+    <!-- KOLOM KIRI: KONTROL SLIDER -->
+    <div class="panel panel-left">
+      <h3>Kontrol</h3>
+      <!-- Slider r -->
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Jari-jari (r)</span>
+          <span id="rValue">7 cm</span>
+        </div>
+        <input type="range" id="rSlider" min="1" max="100" value="7" step="1">
+      </div>
+      <!-- Slider t -->
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Tinggi tabung (t)</span>
+          <span id="tValue">10 cm</span>
+        </div>
+        <input type="range" id="tSlider" min="1" max="100" value="10" step="1">
+      </div>
+      <!-- Slider h -->
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Ketinggian air (h)</span>
+          <span id="hValue">0 cm</span>
+        </div>
+        <input type="range" id="hSlider" min="0" max="10" value="0" step="1">
+      </div>
+      <!-- Tombol aksi -->
+      <div class="btn-row">
+        <button class="btn" id="fillBtn">Isi Penuh</button>
+        <button class="btn" id="resetBtn">Reset</button>
+      </div>
+      <!-- Pilihan pi -->
+      <div class="btn-pi">
+        <button class="btn active" id="pi314Btn">π = 3,14</button>
+        <button class="btn" id="pi227Btn">π = 22/7</button>
+      </div>
+      <div class="small-note">Geser slider untuk eksplorasi</div>
+    </div>
+
+    <!-- KOLOM TENGAH: VISUAL TABUNG -->
+    <div class="panel panel-center">
+      <canvas id="tubeCanvas" width="300" height="200"></canvas>
+    </div>
+
+    <!-- KOLOM KANAN: DATA PENGAMATAN -->
+    <div class="panel panel-right">
+      <h3>Data Pengamatan</h3>
+      <div class="data-box">
+        <div class="data-row">
+          <span class="data-label">Luas Alas</span>
+          <span class="data-value" id="luasAlas">153,86 <span class="satuan">cm²</span></span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Tinggi Air (h)</span>
+          <span class="data-value" id="tinggiAir">0 <span class="satuan">cm</span></span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Volume Air</span>
+          <span class="data-value" id="volumeAir">0 <span class="satuan">cm³</span></span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Kapasitas Penuh</span>
+          <span class="data-value" id="kapasitasPenuh">1538,6 <span class="satuan">cm³</span></span>
+        </div>
+      </div>
+      <div class="small-note" style="margin-top: 2px;">Nilai real-time</div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ===== ELEMEN DOM =====
+      const rSlider = document.getElementById('rSlider');
+      const tSlider = document.getElementById('tSlider');
+      const hSlider = document.getElementById('hSlider');
+      const rValue = document.getElementById('rValue');
+      const tValue = document.getElementById('tValue');
+      const hValue = document.getElementById('hValue');
+      const fillBtn = document.getElementById('fillBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const pi314Btn = document.getElementById('pi314Btn');
+      const pi227Btn = document.getElementById('pi227Btn');
+
+      const luasAlasEl = document.getElementById('luasAlas');
+      const tinggiAirEl = document.getElementById('tinggiAir');
+      const volumeAirEl = document.getElementById('volumeAir');
+      const kapasitasPenuhEl = document.getElementById('kapasitasPenuh');
+
+      const canvas = document.getElementById('tubeCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // ===== STATE =====
+      let r = 7;          // cm
+      let t = 10;         // cm
+      let h = 0;          // cm
+      let piMode = '314'; // '314' atau '227'
+      let animationId = null;
+      let isAnimating = false;
+
+      // ===== FUNGSI PI =====
+      function getPi() {
+        return piMode === '314' ? 3.14 : 22 / 7;
+      }
+
+      // ===== HITUNG NILAI =====
+      function hitungLuasAlas() {
+        const pi = getPi();
+        return pi * r * r;
+      }
+
+      function hitungVolumeAir() {
+        return hitungLuasAlas() * h;
+      }
+
+      function hitungKapasitasPenuh() {
+        return hitungLuasAlas() * t;
+      }
+
+      // ===== FORMAT ANGKA (desimal koma) =====
+      function formatNumber(num) {
+        if (!isFinite(num)) return '0';
+        // Pembulatan 2 desimal, ganti titik jadi koma
+        let rounded = Math.round(num * 100) / 100;
+        let str = rounded.toString();
+        if (str.indexOf('.') !== -1) {
+          str = str.replace('.', ',');
+        } else {
+          // tambahkan ,00 jika perlu? Tidak, biarkan integer
+          // Tapi untuk tampilan lebih baik beri 0 desimal jika bulat.
+          // Biarkan apa adanya.
+        }
+        return str;
+      }
+
+      // ===== UPDATE TAMPILAN DATA =====
+      function updateDataDisplay() {
+        const luas = hitungLuasAlas();
+        const volAir = hitungVolumeAir();
+        const kapasitas = hitungKapasitasPenuh();
+
+        luasAlasEl.innerHTML = formatNumber(luas) + ' <span class="satuan">cm²</span>';
+        tinggiAirEl.innerHTML = formatNumber(h) + ' <span class="satuan">cm</span>';
+        volumeAirEl.innerHTML = formatNumber(volAir) + ' <span class="satuan">cm³</span>';
+        kapasitasPenuhEl.innerHTML = formatNumber(kapasitas) + ' <span class="satuan">cm³</span>';
+      }
+
+      // ===== UPDATE LABEL SLIDER =====
+      function updateSliderLabels() {
+        rValue.textContent = r + ' cm';
+        tValue.textContent = t + ' cm';
+        hValue.textContent = h + ' cm';
+      }
+
+      // ===== ATUR BATAS SLIDER h =====
+      function updateHSliderMax() {
+        hSlider.max = t;
+        // Jika h > t, paksa h = t
+        if (h > t) {
+          h = t;
+          hSlider.value = h;
+        }
+        // Jika h < 0, paksa 0
+        if (h < 0) {
+          h = 0;
+          hSlider.value = h;
+        }
+        // Pastikan hSlider.value sinkron
+        hSlider.value = h;
+      }
+
+      // ===== GAMBAR TABUNG DAN AIR =====
+      function drawTube() {
+        const w = canvas.width;
+        const hCanvas = canvas.height;
+        ctx.clearRect(0, 0, w, hCanvas);
+
+        // Area gambar dengan margin
+        const marginX = 40;
+        const marginY = 20;
+        const drawW = w - 2 * marginX;
+        const drawH = hCanvas - 2 * marginY;
+
+        // Tentukan skala berdasarkan r dan t (max 100)
+        // Kita ingin tabung proporsional: lebar tabung = 2*r, tinggi = t
+        // Tapi kita juga harus memuat r dan t hingga 100.
+        // Gunakan skala yang membuat tabung maksimal 100x100 muat di area gambar.
+        // Lebar tabung (diameter) = 2r, tinggi = t.
+        // Cari faktor skala agar 2r <= drawW dan t <= drawH.
+        // Tapi kita juga ingin tabung terlihat proporsional (lingkaran tetap lingkaran? Karena elips 3D, kita pakai perbandingan tertentu)
+        // Kita gunakan skala seragam untuk r dan t agar bentuk tidak terlalu aneh.
+        // Tapi karena r dan t bisa berbeda jauh, kita batasi aspek rasio.
+
+        // Ukuran maksimum yang diizinkan
+        const maxDiameter = 100; // cm
+        const maxHeight = 100;   // cm
+
+        // Skala minimum agar 100cm diameter dan 100cm tinggi muat
+        // Kita hitung skala agar 2*maxR <= drawW dan maxHeight <= drawH
+        // Tapi kita juga harus menampilkan r dan t saat ini dengan ukuran sebenarnya.
+        // Kita gunakan skala tetap berdasarkan nilai maksimum slider (100) agar tidak berubah-ubah.
+        // Skala: drawW / (2 * 100) dan drawH / 100
+        const scaleX = drawW / (2 * 100);  // cm -> pixel horizontal
+        const scaleY = drawH / 100;        // cm -> pixel vertikal
+
+        // Gunakan skala minimum agar tabung tidak terpotong
+        const scale = Math.min(scaleX, scaleY);
+
+        // Tapi kita juga harus memastikan tabung saat ini (2r, t) muat.
+        // Dengan skala tetap, jika r=100, diameter=200 * scale <= drawW, OK.
+        // Jadi gunakan skala tetap.
+
+        // Ukuran tabung dalam pixel
+        const tubeWidthPx = 2 * r * scale;   // diameter
+        const tubeHeightPx = t * scale;
+
+        // Posisi tengah
+        const centerX = w / 2;
+        const centerY = hCanvas / 2;
+
+        // Tabung digambar dengan pusat di (centerX, centerY)
+        // Tapi kita perlu menggambar elips atas dan bawah.
+        // Karena ini representasi 3D, kita gunakan elips dengan rasio tertentu.
+        // Rasio elips: tinggi elips = 0.25 * lebar elips (agar terlihat 3D)
+        const ellipseRatio = 0.28;
+
+        const tubeLeft = centerX - tubeWidthPx / 2;
+        const tubeRight = centerX + tubeWidthPx / 2;
+        const tubeTop = centerY - tubeHeightPx / 2;
+        const tubeBottom = centerY + tubeHeightPx / 2;
+
+        // Elips alas (bawah) dan tutup (atas)
+        const ellipseHeight = tubeWidthPx * ellipseRatio;
+
+        // Warna tabung transparan
+        const tubeFill = 'rgba(56, 189, 248, 0.08)';
+        const tubeStroke = '#38bdf8';
+        const tubeStrokeWidth = 1.5;
+
+        // Gambar badan tabung (persegi panjang dengan elips)
+        // Kita gambar sisi kiri dan kanan, lalu elips bawah dan atas.
+
+        // 1. Gambar badan tabung (path)
+        ctx.beginPath();
+        // Sisi kiri dari atas ke bawah
+        ctx.moveTo(tubeLeft, tubeTop + ellipseHeight / 2);
+        ctx.lineTo(tubeLeft, tubeBottom - ellipseHeight / 2);
+        // Elips bawah (setengah)
+        ctx.ellipse(centerX, tubeBottom - ellipseHeight / 2, tubeWidthPx / 2, ellipseHeight / 2, 0, Math.PI, 0, true);
+        // Sisi kanan dari bawah ke atas
+        ctx.lineTo(tubeRight, tubeTop + ellipseHeight / 2);
+        // Elips atas (setengah)
+        ctx.ellipse(centerX, tubeTop + ellipseHeight / 2, tubeWidthPx / 2, ellipseHeight / 2, 0, 0, Math.PI, true);
+        ctx.closePath();
+
+        // Isi tabung transparan
+        ctx.fillStyle = tubeFill;
+        ctx.fill();
+        ctx.strokeStyle = tubeStroke;
+        ctx.lineWidth = tubeStrokeWidth;
+        ctx.stroke();
+
+        // 2. Gambar air (jika h > 0)
+        if (h > 0.1) {
+          const waterHeightPx = h * scale;
+          // Air mulai dari bawah
+          const waterTop = tubeBottom - waterHeightPx;
+
+          // Pastikan air tidak melebihi tinggi tabung
+          const waterTopClamped = Math.max(tubeTop + ellipseHeight / 2, waterTop);
+
+          // Path air: dari kiri bawah (dalam tabung) ke atas, elips atas air, ke kanan bawah, elips bawah air
+          ctx.beginPath();
+          // Kiri bawah air (pada alas)
+          ctx.moveTo(tubeLeft, tubeBottom - ellipseHeight / 2);
+          // Sisi kiri naik ke permukaan air
+          ctx.lineTo(tubeLeft, waterTopClamped);
+          // Elips permukaan air (setengah depan)
+          ctx.ellipse(centerX, waterTopClamped, tubeWidthPx / 2, ellipseHeight / 2, 0, Math.PI, 0, true);
+          // Sisi kanan turun ke alas
+          ctx.lineTo(tubeRight, tubeBottom - ellipseHeight / 2);
+          // Elips alas (setengah belakang) - gambar dari kanan ke kiri
+          ctx.ellipse(centerX, tubeBottom - ellipseHeight / 2, tubeWidthPx / 2, ellipseHeight / 2, 0, 0, Math.PI, false);
+          ctx.closePath();
+
+          // Gradien air biru cerah
+          const gradient = ctx.createLinearGradient(tubeLeft, 0, tubeRight, 0);
+          gradient.addColorStop(0, '#1e90ff');
+          gradient.addColorStop(0.5, '#00bfff');
+          gradient.addColorStop(1, '#1e90ff');
+          ctx.fillStyle = gradient;
+          ctx.globalAlpha = 0.75;
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+
+          // Garis permukaan air (elips) lebih terang
+          ctx.beginPath();
+          ctx.ellipse(centerX, waterTopClamped, tubeWidthPx / 2, ellipseHeight / 2, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = '#a5f3fc';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          // Efek kilau di permukaan
+          ctx.beginPath();
+          ctx.ellipse(centerX - tubeWidthPx * 0.15, waterTopClamped - 1, tubeWidthPx * 0.2, ellipseHeight * 0.2, 0, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.fill();
+        }
+
+        // 3. Gambar elips atas (tutup) sebagai garis
+        ctx.beginPath();
+        ctx.ellipse(centerX, tubeTop + ellipseHeight / 2, tubeWidthPx / 2, ellipseHeight / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#7dd3fc';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // 4. Gambar elips bawah (alas) sebagai garis
+        ctx.beginPath();
+        ctx.ellipse(centerX, tubeBottom - ellipseHeight / 2, tubeWidthPx / 2, ellipseHeight / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#7dd3fc';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // 5. Label ukuran
+        ctx.font = 'bold 9px "Segoe UI", Roboto, sans-serif';
+        ctx.fillStyle = '#f0f9ff';
+        ctx.shadowColor = '#0b1424';
+        ctx.shadowBlur = 4;
+
+        // Label r (jari-jari) di bawah alas
+        ctx.fillStyle = '#e0f2fe';
+        ctx.font = 'bold 9px "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('r = ' + r + ' cm', centerX, tubeBottom + ellipseHeight / 2 + 12);
+
+        // Label t (tinggi tabung) di samping kanan
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#7dd3fc';
+        ctx.fillText('t = ' + t + ' cm', tubeRight + 6, centerY + 3);
+
+        // Label h (tinggi air) di samping kiri dalam tabung
+        if (h > 0.1) {
+          const waterTopY = tubeBottom - h * scale;
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#a5f3fc';
+          ctx.fillText('h = ' + h + ' cm', tubeLeft - 6, waterTopY + 2);
+        }
+
+        // Reset shadow
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+      }
+
+      // ===== UPDATE SEMUA =====
+      function updateAll() {
+        updateSliderLabels();
+        updateDataDisplay();
+        updateHSliderMax();
+        drawTube();
+      }
+
+      // ===== ANIMASI PENGISIAN =====
+      function animateFill() {
+        if (isAnimating) {
+          cancelAnimationFrame(animationId);
+        }
+        isAnimating = true;
+
+        const targetH = t;
+        const startH = h;
+        const duration = 700; // ms
+        const startTime = performance.now();
+
+        function step(now) {
+          const elapsed = now - startTime;
+          let progress = Math.min(elapsed / duration, 1);
+          // Easing
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const currentH = startH + (targetH - startH) * eased;
+          h = Math.round(currentH * 100) / 100; // simpan desimal untuk animasi halus
+          // Tapi slider step 1, kita bulatkan untuk tampilan? Animasi tetap halus.
+          // Kita update slider value dengan pembulatan? Tapi agar halus, gunakan nilai desimal.
+          // Slider hanya mendukung integer step, jadi kita set value ke pembulatan.
+          // Tapi kita update h secara real untuk perhitungan.
+          // Untuk slider, kita set ke Math.round(h) agar thumb bergerak.
+          hSlider.value = Math.round(h);
+          // Tapi h yang digunakan untuk perhitungan adalah h (desimal). Nanti di akhir kita bulatkan.
+          // Update label dan data
+          updateSliderLabels();
+          updateDataDisplay();
+          drawTube();
+
+          if (progress < 1) {
+            animationId = requestAnimationFrame(step);
+          } else {
+            // Selesai, bulatkan h ke integer
+            h = t;
+            hSlider.value = h;
+            isAnimating = false;
+            updateAll();
+            animationId = null;
+          }
+        }
+
+        animationId = requestAnimationFrame(step);
+      }
+
+      // ===== RESET AIR =====
+      function resetWater() {
+        if (isAnimating) {
+          cancelAnimationFrame(animationId);
+          isAnimating = false;
+          animationId = null;
+        }
+        h = 0;
+        hSlider.value = 0;
+        updateAll();
+      }
+
+      // ===== EVENT LISTENERS =====
+
+      // Slider r
+      rSlider.addEventListener('input', function() {
+        r = parseInt(this.value);
+        updateAll();
+      });
+
+      // Slider t
+      tSlider.addEventListener('input', function() {
+        t = parseInt(this.value);
+        updateHSliderMax();
+        updateAll();
+      });
+
+      // Slider h
+      hSlider.addEventListener('input', function() {
+        if (isAnimating) {
+          cancelAnimationFrame(animationId);
+          isAnimating = false;
+          animationId = null;
+        }
+        h = parseInt(this.value);
+        updateAll();
+      });
+
+      // Tombol Isi Penuh
+      fillBtn.addEventListener('click', function() {
+        if (t === 0) return;
+        // Jika h sudah penuh, tidak perlu animasi
+        if (h >= t) return;
+        animateFill();
+      });
+
+      // Tombol Reset
+      resetBtn.addEventListener('click', function() {
+        resetWater();
+      });
+
+      // Tombol Pi 3,14
+      pi314Btn.addEventListener('click', function() {
+        piMode = '314';
+        pi314Btn.classList.add('active');
+        pi227Btn.classList.remove('active');
+        updateAll();
+      });
+
+      // Tombol Pi 22/7
+      pi227Btn.addEventListener('click', function() {
+        piMode = '227';
+        pi227Btn.classList.add('active');
+        pi314Btn.classList.remove('active');
+        updateAll();
+      });
+
+      // Inisialisasi
+      function init() {
+        r = 7;
+        t = 10;
+        h = 0;
+        rSlider.value = r;
+        tSlider.value = t;
+        hSlider.max = t;
+        hSlider.value = h;
+        piMode = '314';
+        pi314Btn.classList.add('active');
+        pi227Btn.classList.remove('active');
+        updateAll();
+      }
+
+      init();
+
+      // Handle resize canvas? Tidak perlu karena ukuran tetap.
+      // Tapi kita set canvas resolution sesuai ukuran tampilan.
+      // Canvas sudah 300x200, panel tengah akan menyesuaikan.
+      // Pastikan gambar tetap tajam.
+    })();
+  </script>
+</body>
+</html>
